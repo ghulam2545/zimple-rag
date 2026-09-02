@@ -1,5 +1,8 @@
 package com.ghulam.backend.helper;
 
+import com.ghulam.backend.dtos.ChatRequest;
+import com.ghulam.backend.dtos.OllamaResponse;
+import com.ghulam.backend.service.ChatService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -19,10 +22,12 @@ public final class RunnerApplication {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final ChatClient chatClient;
+    private final ChatService chatService;
 
-    public RunnerApplication(RedisTemplate<String, Object> redisTemplate, ChatClient chatClient) {
+    public RunnerApplication(RedisTemplate<String, Object> redisTemplate, ChatClient chatClient, ChatService chatService) {
         this.redisTemplate = redisTemplate;
         this.chatClient = chatClient;
+        this.chatService = chatService;
     }
 
     @PostConstruct
@@ -30,6 +35,7 @@ public final class RunnerApplication {
         checkRedis();
         checkApiKey();
         checkOllamaChat();
+        checkOllamaChatV2();
     }
 
     public void checkRedis() {
@@ -67,5 +73,10 @@ public final class RunnerApplication {
         } catch (Exception e) {
             log.error("<<======================================================== Ollama Chat check FAILED", e);
         }
+    }
+
+    public void checkOllamaChatV2() {
+        OllamaResponse out = chatService.chat(new ChatRequest("workspace", "userId", "conversationId", ""));
+        log.info("<<======================================================== Ollama Chat V2 Response: {}", out);
     }
 }
