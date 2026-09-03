@@ -1,5 +1,6 @@
 package com.ghulam.backend.exception;
 
+import com.ghulam.backend.helper.AppSetting;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex) {
 
-        log.info("unexpected exception: {}", ex.getMessage(), ex);
+        log.info("{} unexpected exception: {}", AppSetting.LOG_SEPARATOR, ex.getMessage(), ex);
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)

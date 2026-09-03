@@ -1,5 +1,6 @@
 package com.ghulam.backend.service;
 
+import com.ghulam.backend.helper.AppSetting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
@@ -23,15 +24,15 @@ public class VectorStoreService {
             List<Document> batch = documents.subList(i, end);
             vectorStore.add(batch);
         }
-        log.info("Added {} documents to PGVector", documents.size());
+        log.info("{} Added {} documents to PGVector", AppSetting.LOG_SEPARATOR, documents.size());
     }
 
     public void deleteByFilePath(String filePath) {
         try {
             vectorStore.delete("file_path == '" + filePath.replace("'", "''") + "'");
-            log.info("Deleted vectors for file_path={}", filePath);
+            log.info("{} Deleted vectors for file_path={}", AppSetting.LOG_SEPARATOR, filePath);
         } catch (Exception e) {
-            log.warn("Delete failed, might be first ingestion: {}", e.getMessage());
+            log.warn("{} Delete failed, might be first ingestion: {}", AppSetting.LOG_SEPARATOR, e.getMessage());
         }
     }
 }

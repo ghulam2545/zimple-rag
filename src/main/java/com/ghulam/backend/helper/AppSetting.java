@@ -12,4 +12,5 @@ public final class AppSetting {
     public static final String SOURCE_DIR = "./documents";
 
     public static final int CACHE_TTL_MINUTES = 60;
+    public static final String LOG_SEPARATOR = "──────────────────────────────────────────────────────";
 }

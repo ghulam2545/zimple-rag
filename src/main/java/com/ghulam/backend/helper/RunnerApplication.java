@@ -44,17 +44,17 @@ public final class RunnerApplication {
             String value = "ok";
             redisTemplate.opsForValue().set(key, value);
             String out = (String) redisTemplate.opsForValue().get(key);
-            log.info("<<======================================================== Redis is up: key={}, value={}", key, out);
+            log.info("{} Redis is up: key={}, value={}", AppSetting.LOG_SEPARATOR, key, out);
         } catch (Exception e) {
-            log.error("<<======================================================== Redis check failed: {}", e.getMessage());
+            log.error("{} Redis check failed: {}", AppSetting.LOG_SEPARATOR, e.getMessage());
         }
     }
 
     public void checkApiKey() {
         if (apiKey == null || apiKey.isBlank()) {
-            log.warn("<<======================================================== Ollama API key is NOT configured");
+            log.warn("{} Ollama API key is NOT configured", AppSetting.LOG_SEPARATOR);
         } else {
-            log.info("<<======================================================== Ollama API key is configured");
+            log.info("{} Ollama API key is configured", AppSetting.LOG_SEPARATOR);
         }
     }
 
@@ -68,15 +68,15 @@ public final class RunnerApplication {
                     .call()
                     .content();
 
-            log.info("<<======================================================== Ollama Chat is UP");
-            log.info("<<======================================================== Ollama Chat Response: {}", response);
+            log.info("{} Ollama Chat is UP", AppSetting.LOG_SEPARATOR);
+            log.info("{} Ollama Chat Response: {}", AppSetting.LOG_SEPARATOR, response);
         } catch (Exception e) {
-            log.error("<<======================================================== Ollama Chat check FAILED", e);
+            log.error("{} Ollama Chat check FAILED", AppSetting.LOG_SEPARATOR, e);
         }
     }
 
     public void checkOllamaChatV2() {
         OllamaResponse out = chatService.chat(new ChatRequest("workspace", "userId", "conversationId", ""));
-        log.info("<<======================================================== Ollama Chat V2 Response: {}", out);
+        log.info("{} Ollama Chat V2 Response: {}", AppSetting.LOG_SEPARATOR, out);
     }
 }

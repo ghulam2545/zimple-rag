@@ -3,6 +3,7 @@ package com.ghulam.backend.service;
 import com.ghulam.backend.dtos.BulkIngestionResult;
 import com.ghulam.backend.dtos.IngestionResult;
 import com.ghulam.backend.dtos.LoadedMarkdown;
+import com.ghulam.backend.helper.AppSetting;
 import com.ghulam.backend.helper.MarkdownDocumentLoader;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,7 @@ public class IngestionService {
                     totalChunks += result.chunksCount();
                 }
             } catch (Exception ex) {
-                log.warn("Failed to ingest {}: {}", file, ex.getMessage());
+                log.warn("{} Failed to ingest {}: {}", AppSetting.LOG_SEPARATOR, file, ex.getMessage());
             }
         }
 
@@ -67,10 +68,10 @@ public class IngestionService {
         var metadata = document.metadata();
 
         if (isAlreadyIngested(metadata.getFilePath(), metadata.getFileHash())) {
-            log.info("Skipping unchanged file: {}", metadata.getFileName());
+            log.info("{} Skipping unchanged file: {}", AppSetting.LOG_SEPARATOR, metadata.getFileName());
             return new IngestionResult(metadata.getFileName(), metadata.getFileHash(), 0, "SKIPPED_DUPLICATE");
         }
-        log.info("Ingesting {} ({} chunks)", metadata.getFileName(), document.chunks().size());
+        log.info("{} Ingesting {} ({} chunks)", AppSetting.LOG_SEPARATOR, metadata.getFileName(), document.chunks().size());
 
         vectorStoreService.deleteByFilePath(metadata.getFilePath());
         vectorStoreService.addDocuments(document.chunks());
@@ -139,7 +140,7 @@ public class IngestionService {
         try {
             return CompletableFuture.completedFuture(ingestFile(file));
         } catch (Exception ex) {
-            log.error("Async ingest failed {}", file, ex);
+            log.error("{} Async ingest failed {}", AppSetting.LOG_SEPARATOR, file, ex);
             return CompletableFuture.failedFuture(ex);
         }
     }

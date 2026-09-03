@@ -50,7 +50,7 @@ public class MarkdownDocumentLoader {
 
         List<Document> chunks = chunker.chunk(cleaned, baseMeta);
 
-        log.info("Loaded MD {} -> {} chunks, hash {}", fileName, chunks.size(), hash.substring(0, 8));
+        log.info("{} Loaded MD {} -> {} chunks, hash {}", AppSetting.LOG_SEPARATOR, fileName, chunks.size(), hash.substring(0, 8));
         return new LoadedMarkdown(baseMeta, cleaned, chunks);
     }
 
