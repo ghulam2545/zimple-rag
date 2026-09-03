@@ -34,8 +34,8 @@ public final class RunnerApplication {
     public void init() {
         checkRedis();
         checkApiKey();
-        checkOllamaChat();
-        checkOllamaChatV2();
+        // checkOllamaChat();
+        // checkOllamaChatV2();
     }
 
     public void checkRedis() {
