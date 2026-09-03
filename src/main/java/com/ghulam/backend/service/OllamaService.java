@@ -20,12 +20,12 @@ public class OllamaService {
     public OllamaResponse chat() {
         // TODO
         String conversationId = UUID.randomUUID().toString();
-        String response = chatClient
-                .prompt()
-                .user("Who are you and what is your job?")
-                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
-                .call()
-                .content();
+        String response = "LOL"; //chatClient
+                // .prompt()
+                // .user("Who are you and what is your job?")
+                // .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
+                // .call()
+                // .content();
 
         return new OllamaResponse(conversationId, response, List.of());
     }

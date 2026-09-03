@@ -9,6 +9,7 @@ public final class AppSetting {
     public static final int MIN_CHUNK_LENGTH = 100;
     public static final int CHUNK_SIZE = 800;
     public static final int CHUNK_OVERLAP = 150;
+    public static final String SOURCE_DIR = "./documents";
 
     public static final int CACHE_TTL_MINUTES = 60;
 }
