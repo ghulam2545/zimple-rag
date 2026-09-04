@@ -11,6 +11,11 @@ public final class AppSetting {
     public static final int CHUNK_OVERLAP = 150;
     public static final String SOURCE_DIR = "./documents";
 
+    public static final int TOP_K = 5;
+    public static final double SIMILARITY_THRESHOLD = 0.1;
+    public static final int MAX_QUERY_LENGTH = 600;
+
     public static final int CACHE_TTL_MINUTES = 60;
+    public static final int CHAT_MEMORY_TTL_HOURS = 24;
     public static final String LOG_SEPARATOR = "──────────────────────────────────────────────────────";
 }

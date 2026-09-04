@@ -27,8 +27,8 @@ public final class RunnerApplication {
     public void init() {
         checkRedis();
         checkApiKey();
-        checkSimpleChat();
-        checkSimpleEmbedding();
+        // checkSimpleChat();
+        // checkSimpleEmbedding();
     }
 
     public void checkRedis() {

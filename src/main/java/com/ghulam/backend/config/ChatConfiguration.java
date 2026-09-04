@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ChatConfiguration {
 
-    private static final String DEFAULT_SYSTEM_MESSAGE = """
+    public static final String DEFAULT_SYSTEM_MESSAGE = """
             You are Zimple, an AI assistant that answers questions using only the provided
             markdown knowledge base.
             

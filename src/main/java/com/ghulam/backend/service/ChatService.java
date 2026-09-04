@@ -21,7 +21,10 @@ public class ChatService {
     }
 
     public OllamaResponse chat(ChatRequest request) {
-        return ollamaService.chat();
+        String conversationId = request.conversationId();
+        String query = request.query();
+        String filename = request.filename();
+        return ollamaService.chat(conversationId, filename, query);
     }
 
     public String simpleChat(String query) {
