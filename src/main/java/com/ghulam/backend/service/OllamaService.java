@@ -30,4 +30,14 @@ public class OllamaService {
         return new OllamaResponse(conversationId, response, List.of());
     }
 
+    public String simpleChat(String query) {
+        String conversationId = UUID.randomUUID().toString();
+        return chatClient
+                .prompt()
+                .user(query)
+                .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
+                .call()
+                .content();
+    }
+
 }

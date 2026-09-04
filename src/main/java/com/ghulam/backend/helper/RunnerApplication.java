@@ -1,17 +1,12 @@
 package com.ghulam.backend.helper;
 
-import com.ghulam.backend.dtos.ChatRequest;
-import com.ghulam.backend.dtos.OllamaResponse;
 import com.ghulam.backend.service.ChatService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-
-import java.util.UUID;
 
 @Component
 @Slf4j
@@ -21,12 +16,10 @@ public final class RunnerApplication {
     private String apiKey;
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final ChatClient chatClient;
     private final ChatService chatService;
 
-    public RunnerApplication(RedisTemplate<String, Object> redisTemplate, ChatClient chatClient, ChatService chatService) {
+    public RunnerApplication(RedisTemplate<String, Object> redisTemplate, ChatService chatService) {
         this.redisTemplate = redisTemplate;
-        this.chatClient = chatClient;
         this.chatService = chatService;
     }
 
@@ -34,8 +27,8 @@ public final class RunnerApplication {
     public void init() {
         checkRedis();
         checkApiKey();
-        // checkOllamaChat();
-        // checkOllamaChatV2();
+        checkSimpleChat();
+        checkSimpleEmbedding();
     }
 
     public void checkRedis() {
@@ -58,25 +51,25 @@ public final class RunnerApplication {
         }
     }
 
-    public void checkOllamaChat() {
-        String conversationId = UUID.randomUUID().toString();
+    public void checkSimpleChat() {
         try {
-            String response = chatClient
-                    .prompt()
-                    .user("What can you do?")
-                    .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, conversationId))
-                    .call()
-                    .content();
-
-            log.info("{} Ollama Chat is UP", AppSetting.LOG_SEPARATOR);
-            log.info("{} Ollama Chat Response: {}", AppSetting.LOG_SEPARATOR, response);
+            String message = "hello";
+            String out = chatService.simpleChat(message);
+            log.info("{} Simple chat result: {}", AppSetting.LOG_SEPARATOR, out);
         } catch (Exception e) {
-            log.error("{} Ollama Chat check FAILED", AppSetting.LOG_SEPARATOR, e);
+            log.error("{} Simple chat failed: {}", AppSetting.LOG_SEPARATOR, e.getMessage());
         }
     }
 
-    public void checkOllamaChatV2() {
-        OllamaResponse out = chatService.chat(new ChatRequest("workspace", "userId", "conversationId", ""));
-        log.info("{} Ollama Chat V2 Response: {}", AppSetting.LOG_SEPARATOR, out);
+    public void checkSimpleEmbedding() {
+        try {
+            Document document = new Document("PostgreSQL is an open-source relational database system.");
+            String query = "What is PostgreSQL?";
+
+            String out = chatService.simpleEmbedding(document, query);
+            log.info("{} Simple embedding result: {}", AppSetting.LOG_SEPARATOR, out);
+        } catch (Exception e) {
+            log.error("{} Simple embedding failed: {}", AppSetting.LOG_SEPARATOR, e.getMessage());
+        }
     }
 }
