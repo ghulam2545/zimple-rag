@@ -5,10 +5,8 @@ import com.ghulam.backend.dtos.ChatResponse;
 import com.ghulam.backend.dtos.OllamaResponse;
 import com.ghulam.backend.service.ChatService;
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin("*")
@@ -21,12 +19,12 @@ public class ChatController {
     }
 
     @PostMapping(path = "/chat")
-    public ChatResponse chat(@Valid @RequestBody ChatRequest request) {
+    public ResponseEntity<ChatResponse> chat(@Valid @RequestBody ChatRequest request) {
         long start = System.currentTimeMillis();
         OllamaResponse resp = chatService.chat(request);
         long latency = System.currentTimeMillis() - start;
 
-        return new ChatResponse(
+        var out = new ChatResponse(
                 request.workspace(),
                 request.userId(),
                 request.conversationId(),
@@ -34,5 +32,13 @@ public class ChatController {
                 resp.references(),
                 latency
         );
+
+        return ResponseEntity.ok(out);
+    }
+
+    @GetMapping(path = "/files")
+    public ResponseEntity<?> getIngestedFiles() {
+        var files = chatService.getIngestedFiles();
+        return ResponseEntity.ok(files);
     }
 }

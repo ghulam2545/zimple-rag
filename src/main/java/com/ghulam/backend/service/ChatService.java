@@ -5,19 +5,23 @@ import com.ghulam.backend.dtos.OllamaResponse;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ChatService {
 
     private final OllamaService ollamaService;
     private final VectorStore vectorStore;
+    private final JdbcTemplate jdbcTemplate;
 
-    public ChatService(OllamaService ollamaService, VectorStore vectorStore) {
+    public ChatService(OllamaService ollamaService, VectorStore vectorStore, JdbcTemplate jdbcTemplate) {
         this.ollamaService = ollamaService;
         this.vectorStore = vectorStore;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public OllamaResponse chat(ChatRequest request) {
@@ -42,5 +46,10 @@ public class ChatService {
         );
 
         return results.get(0).getText();
+    }
+
+    public List<Map<String, Object>> getIngestedFiles() {
+        String sql = "SELECT workspace, user_id, file_path, is_public, created_at FROM document_data;";
+        return jdbcTemplate.queryForList(sql);
     }
 }
