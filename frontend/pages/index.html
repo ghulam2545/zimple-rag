@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zimple RAG</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo">Z</div>
+                <div>
+                    <h1>Zimple RAG</h1>
+                    <!--                <p>Markdown files only</p>-->
+                </div>
+            </div>
+            <div class="panel">
+                <h3>Knowledge Base</h3>
+                <div id="kb-stats" class="stats">Loading...</div>
+                <div class="upload-zone" id="uploadZone">
+                    <input type="file" id="fileInput" multiple accept=".md,.markdown" hidden />
+                    <p>Drop MD files here<br><span>or click to upload</span></p>
+                </div>
+                <button id="ingestDirBtn" class="secondary">Ingest</button>
+            </div>
+            <div class="panel">
+                <h3>Conversation</h3>
+                <div class="conv-info"><span id="convId"></span>
+                    <button id="clearBtn">Clear</button>
+                </div>
+            </div>
+            <div class="footer"><span>Spring AI + Gemini</span></div>
+        </aside>
+        <main class="chat-area">
+            <div id="messages" class="messages">
+                <div class="message assistant">
+                    <div class="avatar">Z</div>
+                    <div class="bubble">
+                        <p>Hi, I'm your MD-only RAG agent. Upload your Markdown docs and ask anything - I'll answer with
+                            citations.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="composer">
+                <div class="input-wrap">
+                    <textarea id="queryInput" placeholder="Ask about your markdown docs..." rows="1"></textarea>
+                    <button id="sendBtn" class="primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 19V5"></path>
+                            <path d="M6 11l6-6 6 6"></path>
+                        </svg>
+                    </button>
+                </div>
+                <p class="hint">Press Enter to send - Shift+Enter for new line</p>
+            </div>
+        </main>
+        <aside class="sources-panel" id="sourcesPanel">
+            <h3>Sources</h3>
+            <div id="sourcesList" class="sources-list">
+                <p class="empty">No sources yet. Ask a question.</p>
+            </div>
+        </aside>
+    </div>
+    <script type="module" src="/dist/app.js"></script>
+</body>
+
+</html>

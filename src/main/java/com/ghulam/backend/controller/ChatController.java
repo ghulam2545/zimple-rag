@@ -5,11 +5,13 @@ import com.ghulam.backend.dtos.ChatResponse;
 import com.ghulam.backend.dtos.OllamaResponse;
 import com.ghulam.backend.service.ChatService;
 import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@CrossOrigin("*")
 public class ChatController {
 
     private final ChatService chatService;
