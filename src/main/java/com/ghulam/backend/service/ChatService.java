@@ -27,8 +27,10 @@ public class ChatService {
     public OllamaResponse chat(ChatRequest request) {
         String conversationId = request.conversationId();
         String query = request.query();
+        String workspace = request.workspace();
+        String userId = request.userId();
         String filename = request.filename();
-        return ollamaService.chat(conversationId, filename, query);
+        return ollamaService.chat(conversationId, workspace, userId, filename, query);
     }
 
     public String simpleChat(String query) {
@@ -49,7 +51,7 @@ public class ChatService {
     }
 
     public List<Map<String, Object>> getIngestedFiles() {
-        String sql = "SELECT workspace, user_id, file_path, is_public, created_at FROM document_data;";
+        String sql = "SELECT workspace, user_id, filename, is_public, created_timestamp FROM document_data;";
         return jdbcTemplate.queryForList(sql);
     }
 }

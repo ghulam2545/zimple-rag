@@ -28,29 +28,29 @@ public class MarkdownDocumentLoader {
     public LoadedMarkdown loadFromPath(Path path) throws IOException {
         validator.validateFile(path);
         String raw = Files.readString(path, StandardCharsets.UTF_8);
-        return process(raw, path.toString(), path.getFileName().toString());
+        return process(raw, path.getFileName().toString());
     }
 
     public LoadedMarkdown loadFromUpload(MultipartFile file) throws IOException {
         validator.validateUpload(file);
         String raw = new String(file.getBytes(), StandardCharsets.UTF_8);
         String name = file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload.md";
-        return process(raw, name, name);
+        return process(raw, name);
     }
 
-    private LoadedMarkdown process(String raw, String filePath, String fileName) {
+    private LoadedMarkdown process(String raw, String filename) {
         if (raw == null || raw.isBlank()) throw new RuntimeException("Empty markdown");
 
         Map<String, Object> fm = cleaner.extractFrontmatter(raw);
         String cleaned = cleaner.clean(raw);
         String hash = DigestUtils.md5DigestAsHex(cleaned.getBytes(StandardCharsets.UTF_8));
         MarkdownMetadata baseMeta = MarkdownMetadata.builder()
-                .filePath(filePath).fileName(fileName).fileHash(hash)
+                .filename(filename).fileHash(hash)
                 .fileSize(cleaned.length()).frontmatter(fm).build();
 
         List<Document> chunks = chunker.chunk(cleaned, baseMeta);
 
-        log.info("{} Loaded MD {} -> {} chunks, hash {}", AppSetting.LOG_SEPARATOR, fileName, chunks.size(), hash.substring(0, 8));
+        log.info("{} Loaded MD {} -> {} chunks, hash {}", AppSetting.LOG_SEPARATOR, filename, chunks.size(), hash.substring(0, 8));
         return new LoadedMarkdown(baseMeta, cleaned, chunks);
     }
 

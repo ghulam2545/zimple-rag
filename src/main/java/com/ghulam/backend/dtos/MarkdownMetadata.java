@@ -15,8 +15,7 @@ public class MarkdownMetadata {
     private String workspace = "workspace";
     @Builder.Default
     private String userId = "userId";
-    private String filePath;
-    private String fileName;
+    private String filename;
     private String fileHash;
     private long fileSize;
     private List<String> headingsHierarchy;

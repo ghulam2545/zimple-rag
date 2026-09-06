@@ -33,13 +33,13 @@ public class OllamaService {
     }
 
     // chat with a given MD file
-    public OllamaResponse chat(String conversationId, String filename, String query) {
+    public OllamaResponse chat(String conversationId, String workspace, String userId, String filename, String query) {
         if (query.length() > AppSetting.MAX_QUERY_LENGTH) {
             throw new IllegalArgumentException("Query is too long");
         }
         redisService.addMessage(conversationId, "user", query);
 
-        List<Document> docs = similaritySearch(filename, query);
+        List<Document> docs = similaritySearch(workspace, userId, filename, query);
 
         if (docs.isEmpty()) {
             return new OllamaResponse(conversationId, "I don't have that in the knowledge base. Try uploading relevant MD files or rephrase.", List.of());
@@ -71,16 +71,25 @@ public class OllamaService {
 
     // ────────────────────────────────────────────────────── private helpers
 
-    private List<Document> similaritySearch(String filename, String query) {
-        var builder = new FilterExpressionBuilder();
-        Filter.Expression filter = builder.eq("filename", filename).build();
+    private List<Document> similaritySearch(String workspace, String userId, String filename, String query) {
+        var b = new FilterExpressionBuilder();
+        Filter.Expression filter = b
+                .and(
+                        b.and(
+                                b.eq("workspace", workspace),
+                                b.eq("user_id", userId)
+                        ),
+                        b.eq("file_name", filename)
+                )
+                .build();
 
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(query)
                 .topK(AppSetting.TOP_K)
                 // .similarityThreshold(AppSetting.SIMILARITY_THRESHOLD)
-                // .filterExpression(filter)
+                .filterExpression(filter)
                 .build();
+        log.info("{} Performing similarity search. Query='{}', workspace='{}', userId='{}', filename='{}'", AppSetting.LOG_SEPARATOR, query, workspace, userId, filename);
 
         List<Document> documents = vectorStore.similaritySearch(searchRequest);
         log.info("{} Similarity search completed. Query='{}', results={}", AppSetting.LOG_SEPARATOR, query, documents.size());

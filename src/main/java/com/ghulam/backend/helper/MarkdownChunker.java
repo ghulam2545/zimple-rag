@@ -27,8 +27,7 @@ public class MarkdownChunker {
                 Map<String, Object> meta = new HashMap<>();
                 meta.put("workspace", baseMeta.getWorkspace());
                 meta.put("user_id", baseMeta.getUserId());
-                meta.put("file_path", baseMeta.getFilePath());
-                meta.put("file_name", baseMeta.getFileName());
+                meta.put("file_name", baseMeta.getFilename());
                 meta.put("file_hash", baseMeta.getFileHash());
                 meta.put("heading", sec.headingText);
                 meta.put("heading_level", sec.headingLevel);
@@ -36,8 +35,6 @@ public class MarkdownChunker {
                 meta.put("chunk_index", i);
                 meta.put("total_chunks", chunks.size());
                 meta.put("frontmatter", baseMeta.getFrontmatter());
-                String slug = sec.headingText.toLowerCase().replaceAll("\\s+", "-").replaceAll("[^a-z0-9\\-]", "");
-                meta.put("source", baseMeta.getFilePath() + (sec.headingText.isEmpty() ? "" : "#" + slug));
                 docs.add(new Document(chunkText, meta));
             }
         }

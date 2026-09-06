@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.Filter;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,10 +29,20 @@ public class VectorStoreService {
         log.info("{} Added {} documents to PGVector", AppSetting.LOG_SEPARATOR, documents.size());
     }
 
-    public void deleteByFilePath(String filePath) {
+    public void deleteByFilename(String userId, String workspace, String filename) {
         try {
-            vectorStore.delete("file_path == '" + filePath.replace("'", "''") + "'");
-            log.info("{} Deleted vectors for file_path={}", AppSetting.LOG_SEPARATOR, filePath);
+            var b = new FilterExpressionBuilder();
+            Filter.Expression filter = b
+                    .and(
+                            b.and(
+                                    b.eq("workspace", workspace),
+                                    b.eq("user_id", userId)
+                            ),
+                            b.eq("filename", filename)
+                    )
+                    .build();
+            vectorStore.delete(filter);
+            log.info("{} Deleted vectors for file_path={}", AppSetting.LOG_SEPARATOR, filename);
         } catch (Exception e) {
             log.warn("{} Delete failed, might be first ingestion: {}", AppSetting.LOG_SEPARATOR, e.getMessage());
         }

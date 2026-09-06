@@ -67,32 +67,34 @@ public class IngestionService {
     private IngestionResult ingest(LoadedMarkdown document) {
         var metadata = document.metadata();
 
-        if (isAlreadyIngested(metadata.getFilePath(), metadata.getFileHash())) {
-            log.info("{} Skipping unchanged file: {}", AppSetting.LOG_SEPARATOR, metadata.getFileName());
-            return new IngestionResult(metadata.getFileName(), metadata.getFileHash(), 0, "SKIPPED_DUPLICATE");
+        if (isAlreadyIngested(metadata.getFilename(), metadata.getFileHash())) {
+            log.info("{} Skipping unchanged file: {}", AppSetting.LOG_SEPARATOR, metadata.getFilename());
+            return new IngestionResult(metadata.getFilename(), metadata.getFileHash(), 0, "SKIPPED_DUPLICATE");
         }
-        log.info("{} Ingesting {} ({} chunks)", AppSetting.LOG_SEPARATOR, metadata.getFileName(), document.chunks().size());
+        log.info("{} Ingesting {} ({} chunks)", AppSetting.LOG_SEPARATOR, metadata.getFilename(), document.chunks().size());
 
-        vectorStoreService.deleteByFilePath(metadata.getFilePath());
+        String userId = metadata.getUserId();
+        String workspace = metadata.getWorkspace();
+        vectorStoreService.deleteByFilename(userId, workspace, metadata.getFilename());
         vectorStoreService.addDocuments(document.chunks());
 
         saveIngestionStatus(document);
-        return new IngestionResult(metadata.getFileName(), metadata.getFileHash(), document.chunks().size(), "COMPLETED");
+        return new IngestionResult(metadata.getFilename(), metadata.getFileHash(), document.chunks().size(), "COMPLETED");
     }
 
-    private boolean isAlreadyIngested(String filePath, String fileHash) {
+    private boolean isAlreadyIngested(String filename, String fileHash) {
         Boolean exists = jdbcTemplate.queryForObject(
                 """
                         SELECT EXISTS (
                             SELECT 1
                             FROM document_data
-                            WHERE file_path = ?
+                            WHERE filename = ?
                               AND file_hash = ?
                               AND status = 'COMPLETED'
                         )
                         """,
                 Boolean.class,
-                filePath,
+                filename,
                 fileHash
         );
 
@@ -104,16 +106,16 @@ public class IngestionService {
         jdbcTemplate.update(
                 """
                         INSERT INTO document_data
-                            (user_id, workspace, file_path, file_hash, file_size, chunks_count, status)
+                            (user_id, workspace, filename, file_hash, file_size, chunks_count, status)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
-                        ON CONFLICT (user_id, workspace, file_path, file_hash)
+                        ON CONFLICT (user_id, workspace, filename, file_hash)
                         DO UPDATE SET
                             status = 'COMPLETED',
                             chunks_count = EXCLUDED.chunks_count
                         """,
                 metadata.getUserId(),
                 metadata.getWorkspace(),
-                metadata.getFilePath(),
+                metadata.getFilename(),
                 metadata.getFileHash(),
                 metadata.getFileSize(),
                 document.chunks().size(),
