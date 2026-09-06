@@ -1,9 +1,7 @@
 package com.ghulam.backend.dtos;
 
 public record ChatRequest(
-        String workspace,
-        String userId,
+        DocumentScope documentScope,
         String conversationId,
-        String filename,
         String query) {
 }

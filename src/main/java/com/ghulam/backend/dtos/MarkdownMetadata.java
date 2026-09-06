@@ -11,11 +11,7 @@ import java.util.Map;
 @Setter
 @Builder
 public class MarkdownMetadata {
-    @Builder.Default
-    private String workspace = "workspace";
-    @Builder.Default
-    private String userId = "userId";
-    private String filename;
+    private DocumentScope documentScope;
     private String fileHash;
     private long fileSize;
     private List<String> headingsHierarchy;

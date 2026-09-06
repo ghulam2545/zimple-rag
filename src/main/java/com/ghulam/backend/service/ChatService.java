@@ -27,10 +27,7 @@ public class ChatService {
     public OllamaResponse chat(ChatRequest request) {
         String conversationId = request.conversationId();
         String query = request.query();
-        String workspace = request.workspace();
-        String userId = request.userId();
-        String filename = request.filename();
-        return ollamaService.chat(conversationId, workspace, userId, filename, query);
+        return ollamaService.chat(conversationId, request.documentScope(), query);
     }
 
     public String simpleChat(String query) {

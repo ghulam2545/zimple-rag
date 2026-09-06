@@ -1,5 +1,6 @@
 package com.ghulam.backend.service;
 
+import com.ghulam.backend.dtos.DocumentScope;
 import com.ghulam.backend.helper.AppSetting;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,8 +30,12 @@ public class VectorStoreService {
         log.info("{} Added {} documents to PGVector", AppSetting.LOG_SEPARATOR, documents.size());
     }
 
-    public void deleteByFilename(String userId, String workspace, String filename) {
+    public void deleteByFilename(DocumentScope documentScope) {
         try {
+            String workspace = documentScope.workspace();
+            String userId = documentScope.userId();
+            String filename = documentScope.filename();
+
             var b = new FilterExpressionBuilder();
             Filter.Expression filter = b
                     .and(

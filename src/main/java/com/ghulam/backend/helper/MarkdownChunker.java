@@ -25,9 +25,9 @@ public class MarkdownChunker {
                 String chunkText = chunks.get(i);
                 if (chunkText.length() < AppSetting.MIN_CHUNK_LENGTH) continue;
                 Map<String, Object> meta = new HashMap<>();
-                meta.put("workspace", baseMeta.getWorkspace());
-                meta.put("user_id", baseMeta.getUserId());
-                meta.put("file_name", baseMeta.getFilename());
+                meta.put("workspace", baseMeta.getDocumentScope().workspace());
+                meta.put("user_id", baseMeta.getDocumentScope().userId());
+                meta.put("file_name", baseMeta.getDocumentScope().filename());
                 meta.put("file_hash", baseMeta.getFileHash());
                 meta.put("heading", sec.headingText);
                 meta.put("heading_level", sec.headingLevel);

@@ -25,8 +25,8 @@ public class ChatController {
         long latency = System.currentTimeMillis() - start;
 
         var out = new ChatResponse(
-                request.workspace(),
-                request.userId(),
+                request.documentScope().workspace(),
+                request.documentScope().userId(),
                 request.conversationId(),
                 resp.answer(),
                 resp.references(),

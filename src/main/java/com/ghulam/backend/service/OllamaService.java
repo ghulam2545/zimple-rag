@@ -2,6 +2,7 @@ package com.ghulam.backend.service;
 
 import com.ghulam.backend.config.ChatConfiguration;
 import com.ghulam.backend.dtos.DocumentReference;
+import com.ghulam.backend.dtos.DocumentScope;
 import com.ghulam.backend.dtos.OllamaResponse;
 import com.ghulam.backend.helper.AppSetting;
 import lombok.extern.slf4j.Slf4j;
@@ -33,13 +34,13 @@ public class OllamaService {
     }
 
     // chat with a given MD file
-    public OllamaResponse chat(String conversationId, String workspace, String userId, String filename, String query) {
+    public OllamaResponse chat(String conversationId, DocumentScope documentScope, String query) {
         if (query.length() > AppSetting.MAX_QUERY_LENGTH) {
             throw new IllegalArgumentException("Query is too long");
         }
         redisService.addMessage(conversationId, "user", query);
 
-        List<Document> docs = similaritySearch(workspace, userId, filename, query);
+        List<Document> docs = similaritySearch(documentScope, query);
 
         if (docs.isEmpty()) {
             return new OllamaResponse(conversationId, "I don't have that in the knowledge base. Try uploading relevant MD files or rephrase.", List.of());
@@ -71,7 +72,11 @@ public class OllamaService {
 
     // ────────────────────────────────────────────────────── private helpers
 
-    private List<Document> similaritySearch(String workspace, String userId, String filename, String query) {
+    private List<Document> similaritySearch(DocumentScope documentScope, String query) {
+        String workspace = documentScope.workspace();
+        String userId = documentScope.userId();
+        String filename = documentScope.filename();
+
         var b = new FilterExpressionBuilder();
         Filter.Expression filter = b
                 .and(

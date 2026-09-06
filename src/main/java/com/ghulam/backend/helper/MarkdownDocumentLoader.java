@@ -1,5 +1,6 @@
 package com.ghulam.backend.helper;
 
+import com.ghulam.backend.dtos.DocumentScope;
 import com.ghulam.backend.dtos.LoadedMarkdown;
 import com.ghulam.backend.dtos.MarkdownMetadata;
 import lombok.RequiredArgsConstructor;
@@ -44,8 +45,10 @@ public class MarkdownDocumentLoader {
         Map<String, Object> fm = cleaner.extractFrontmatter(raw);
         String cleaned = cleaner.clean(raw);
         String hash = DigestUtils.md5DigestAsHex(cleaned.getBytes(StandardCharsets.UTF_8));
+        DocumentScope scope = new DocumentScope("workspace", "userId", filename); // TODO
+
         MarkdownMetadata baseMeta = MarkdownMetadata.builder()
-                .filename(filename).fileHash(hash)
+                .documentScope(scope).fileHash(hash)
                 .fileSize(cleaned.length()).frontmatter(fm).build();
 
         List<Document> chunks = chunker.chunk(cleaned, baseMeta);

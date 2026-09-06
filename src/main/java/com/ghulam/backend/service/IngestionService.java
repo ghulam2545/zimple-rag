@@ -1,6 +1,7 @@
 package com.ghulam.backend.service;
 
 import com.ghulam.backend.dtos.BulkIngestionResult;
+import com.ghulam.backend.dtos.DocumentScope;
 import com.ghulam.backend.dtos.IngestionResult;
 import com.ghulam.backend.dtos.LoadedMarkdown;
 import com.ghulam.backend.helper.AppSetting;
@@ -66,20 +67,20 @@ public class IngestionService {
 
     private IngestionResult ingest(LoadedMarkdown document) {
         var metadata = document.metadata();
+        DocumentScope documentScope = document.metadata().getDocumentScope();
+        String filename = documentScope.filename();
 
-        if (isAlreadyIngested(metadata.getFilename(), metadata.getFileHash())) {
-            log.info("{} Skipping unchanged file: {}", AppSetting.LOG_SEPARATOR, metadata.getFilename());
-            return new IngestionResult(metadata.getFilename(), metadata.getFileHash(), 0, "SKIPPED_DUPLICATE");
+        if (isAlreadyIngested(filename, metadata.getFileHash())) {
+            log.info("{} Skipping unchanged file: {}", AppSetting.LOG_SEPARATOR, filename);
+            return new IngestionResult(filename, metadata.getFileHash(), 0, "SKIPPED_DUPLICATE");
         }
-        log.info("{} Ingesting {} ({} chunks)", AppSetting.LOG_SEPARATOR, metadata.getFilename(), document.chunks().size());
+        log.info("{} Ingesting {} ({} chunks)", AppSetting.LOG_SEPARATOR, filename, document.chunks().size());
 
-        String userId = metadata.getUserId();
-        String workspace = metadata.getWorkspace();
-        vectorStoreService.deleteByFilename(userId, workspace, metadata.getFilename());
+        vectorStoreService.deleteByFilename(documentScope);
         vectorStoreService.addDocuments(document.chunks());
 
         saveIngestionStatus(document);
-        return new IngestionResult(metadata.getFilename(), metadata.getFileHash(), document.chunks().size(), "COMPLETED");
+        return new IngestionResult(filename, metadata.getFileHash(), document.chunks().size(), "COMPLETED");
     }
 
     private boolean isAlreadyIngested(String filename, String fileHash) {
@@ -103,6 +104,11 @@ public class IngestionService {
 
     private void saveIngestionStatus(LoadedMarkdown document) {
         var metadata = document.metadata();
+        DocumentScope documentScope = metadata.getDocumentScope();
+        String workspace = documentScope.workspace();
+        String userId = documentScope.userId();
+        String filename = documentScope.filename();
+
         jdbcTemplate.update(
                 """
                         INSERT INTO document_data
@@ -113,9 +119,9 @@ public class IngestionService {
                             status = 'COMPLETED',
                             chunks_count = EXCLUDED.chunks_count
                         """,
-                metadata.getUserId(),
-                metadata.getWorkspace(),
-                metadata.getFilename(),
+                userId,
+                workspace,
+                filename,
                 metadata.getFileHash(),
                 metadata.getFileSize(),
                 document.chunks().size(),
