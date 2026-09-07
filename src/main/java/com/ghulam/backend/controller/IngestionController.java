@@ -24,7 +24,7 @@ public class IngestionController {
 
     @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<IngestResponse> upload(@RequestParam("file") MultipartFile file) throws Exception {
-        var res = ingestionService.ingestUpload(file);
+        var res = ingestionService.ingestUploadedFile(file);
         IngestResponse response = new IngestResponse(res.fileName(), res.status(), res.chunksCount(), res.fileHash());
         return ResponseEntity.ok(response);
     }
@@ -33,7 +33,7 @@ public class IngestionController {
     public ResponseEntity<List<IngestResponse>> uploadBulk(@RequestParam("files") List<MultipartFile> files) throws Exception {
         List<IngestResponse> out = new ArrayList<>();
         for (MultipartFile f : files) {
-            var res = ingestionService.ingestUpload(f);
+            var res = ingestionService.ingestUploadedFile(f);
             out.add(new IngestResponse(res.fileName(), res.status(), res.chunksCount(), res.fileHash()));
         }
         return ResponseEntity.ok(out);
