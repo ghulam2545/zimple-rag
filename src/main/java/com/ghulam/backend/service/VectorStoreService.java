@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
-import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,16 +35,8 @@ public class VectorStoreService {
             String userId = documentScope.userId();
             String filename = documentScope.filename();
 
-            var b = new FilterExpressionBuilder();
-            Filter.Expression filter = b
-                    .and(
-                            b.and(
-                                    b.eq("workspace", workspace),
-                                    b.eq("user_id", userId)
-                            ),
-                            b.eq("filename", filename)
-                    )
-                    .build();
+            Filter.Expression filter = AppSetting.getFilterExpression(workspace, userId, filename);
+
             vectorStore.delete(filter);
             log.info("{} Deleted vectors for file_path={}", AppSetting.LOG_SEPARATOR, filename);
         } catch (Exception e) {

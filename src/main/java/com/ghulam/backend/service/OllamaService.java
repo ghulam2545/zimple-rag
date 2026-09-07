@@ -12,7 +12,6 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
-import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -76,17 +75,7 @@ public class OllamaService {
         String workspace = documentScope.workspace();
         String userId = documentScope.userId();
         String filename = documentScope.filename();
-
-        var b = new FilterExpressionBuilder();
-        Filter.Expression filter = b
-                .and(
-                        b.and(
-                                b.eq("workspace", workspace),
-                                b.eq("user_id", userId)
-                        ),
-                        b.eq("file_name", filename)
-                )
-                .build();
+        Filter.Expression filter = AppSetting.getFilterExpression(workspace, userId, filename);
 
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(query)
