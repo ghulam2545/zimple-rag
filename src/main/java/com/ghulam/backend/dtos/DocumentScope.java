@@ -1,9 +1,10 @@
 package com.ghulam.backend.dtos;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record DocumentScope(
-        @NotBlank String workspace,
+        @NotNull String workspace,
         @NotBlank String userId,
         @NotBlank String filename
 ) {

@@ -1,8 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-drop table if exists document_data;
-
 CREATE TABLE IF NOT EXISTS document_data
 (
     id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
