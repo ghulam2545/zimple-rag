@@ -29,31 +29,29 @@ public class MarkdownDocumentLoader {
     public LoadedMarkdown loadFromPath(Path path) throws IOException {
         validator.validateFile(path);
         String raw = Files.readString(path, StandardCharsets.UTF_8);
-        return process(raw, path.getFileName().toString());
+        return null; // TODO
     }
 
-    public LoadedMarkdown loadFromUpload(MultipartFile file) throws IOException {
+    public LoadedMarkdown loadFromUpload(MultipartFile file, DocumentScope documentScope) throws IOException {
         validator.validateUpload(file);
         String raw = new String(file.getBytes(), StandardCharsets.UTF_8);
-        String name = file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload.md";
-        return process(raw, name);
+        return process(raw, documentScope);
     }
 
-    private LoadedMarkdown process(String raw, String filename) {
+    private LoadedMarkdown process(String raw, DocumentScope documentScope) {
         if (raw == null || raw.isBlank()) throw new RuntimeException("Empty markdown");
 
         Map<String, Object> fm = cleaner.extractFrontmatter(raw);
         String cleaned = cleaner.clean(raw);
         String hash = DigestUtils.md5DigestAsHex(cleaned.getBytes(StandardCharsets.UTF_8));
-        DocumentScope scope = new DocumentScope("workspace", "userId", filename); // TODO
 
         MarkdownMetadata baseMeta = MarkdownMetadata.builder()
-                .documentScope(scope).fileHash(hash)
+                .documentScope(documentScope).fileHash(hash)
                 .fileSize(cleaned.length()).frontmatter(fm).build();
 
         List<Document> chunks = chunker.chunk(cleaned, baseMeta);
 
-        log.info("{} Loaded MD {} -> {} chunks, hash {}", AppSetting.LOG_SEPARATOR, filename, chunks.size(), hash.substring(0, 8));
+        log.info("{} Loaded MD {} -> {} chunks, hash {}", AppSetting.LOG_SEPARATOR, documentScope.filename(), chunks.size(), hash.substring(0, 8));
         return new LoadedMarkdown(baseMeta, cleaned, chunks);
     }
 

@@ -1,6 +1,7 @@
 package com.ghulam.backend.service;
 
 import com.ghulam.backend.dtos.BulkIngestionResult;
+import com.ghulam.backend.dtos.DocumentScope;
 import com.ghulam.backend.dtos.IngestionResult;
 import com.ghulam.backend.helper.AppSetting;
 import com.ghulam.backend.helper.MarkdownDocumentLoader;
@@ -26,8 +27,8 @@ public class IngestionService {
     private final IngestionTransactionService transactionService;
 
     // Ingests a Markdown file uploaded by the user.
-    public IngestionResult ingestUploadedFile(MultipartFile file) throws IOException {
-        var document = documentLoader.loadFromUpload(file);
+    public IngestionResult ingestUploadedFile(MultipartFile file, DocumentScope documentScope) throws IOException {
+        var document = documentLoader.loadFromUpload(file, documentScope);
         return transactionService.ingestDocument(document);
     }
 

@@ -38,7 +38,7 @@ public class VectorStoreService {
             Filter.Expression filter = AppSetting.getFilterExpression(workspace, userId, filename);
 
             vectorStore.delete(filter);
-            log.info("{} Deleted vectors for file_path={}", AppSetting.LOG_SEPARATOR, filename);
+            log.info("{} Deleted vectors for filename={}", AppSetting.LOG_SEPARATOR, filename);
         } catch (Exception e) {
             log.warn("{} Delete failed, might be first ingestion: {}", AppSetting.LOG_SEPARATOR, e.getMessage());
         }
