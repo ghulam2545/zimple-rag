@@ -32,7 +32,9 @@ public class HealthController {
 
         try {
             assert redis.getConnectionFactory() != null;
-            redis.getConnectionFactory().getConnection().ping();
+            try (var connection = redis.getConnectionFactory().getConnection()) {
+                connection.ping();
+            }
             out.put("redis", "UP");
         } catch (Exception e) {
             out.put("redis", "DOWN: " + e.getMessage());

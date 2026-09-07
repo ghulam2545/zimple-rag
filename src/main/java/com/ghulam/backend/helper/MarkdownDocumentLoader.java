@@ -12,8 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -25,12 +23,6 @@ public class MarkdownDocumentLoader {
     private final MarkdownValidator validator;
     private final MarkdownCleaner cleaner;
     private final MarkdownChunker chunker;
-
-    public LoadedMarkdown loadFromPath(Path path) throws IOException {
-        validator.validateFile(path);
-        String raw = Files.readString(path, StandardCharsets.UTF_8);
-        return null; // TODO
-    }
 
     public LoadedMarkdown loadFromUpload(MultipartFile file, DocumentScope documentScope) throws IOException {
         validator.validateUpload(file);

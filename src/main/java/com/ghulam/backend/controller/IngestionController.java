@@ -2,7 +2,6 @@ package com.ghulam.backend.controller;
 
 import com.ghulam.backend.dtos.DocumentScope;
 import com.ghulam.backend.dtos.IngestResponse;
-import com.ghulam.backend.helper.AppSetting;
 import com.ghulam.backend.service.IngestionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,11 +11,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,11 +66,4 @@ public class IngestionController {
         return ResponseEntity.ok(out);
     }
 
-    @PostMapping("/directory")
-    public ResponseEntity<?> ingestDir(@RequestParam(value = "path", required = false) String path) throws Exception {
-        String dirPath = (path == null || path.isBlank()) ? AppSetting.SOURCE_DIR : path;
-        Path dir = Paths.get(dirPath);
-        var bulk = ingestionService.ingestDirectory(dir);
-        return ResponseEntity.ok(bulk);
-    }
 }

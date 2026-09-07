@@ -46,7 +46,7 @@ public class OllamaService {
         }
 
         List<DocumentReference> sources = docs.stream().map(d -> new DocumentReference(
-                d.getMetadata().getOrDefault("filename", "").toString(),
+                d.getMetadata().getOrDefault("file_name", "").toString(),
                 d.getMetadata().getOrDefault("heading", "").toString(),
                 Double.valueOf(d.getMetadata().getOrDefault("score", 0.0).toString())
         )).toList();
@@ -94,7 +94,7 @@ public class OllamaService {
     private String contextBlock(List<Document> documents) {
         return documents.stream()
                 .map(document -> {
-                    String source = document.getMetadata().getOrDefault("filename", "").toString();
+                    String source = document.getMetadata().getOrDefault("file_name", "").toString();
                     String heading = document.getMetadata().getOrDefault("heading", "").toString();
 
                     return """

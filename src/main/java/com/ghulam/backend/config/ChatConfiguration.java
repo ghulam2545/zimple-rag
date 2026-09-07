@@ -38,7 +38,7 @@ public class ChatConfiguration {
     @Bean
     public ChatClient chatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
         return builder
-                .defaultSystem(DEFAULT_SYSTEM_MESSAGE)
+                // .defaultSystem(DEFAULT_SYSTEM_MESSAGE)
                 .defaultAdvisors(
                         MessageChatMemoryAdvisor
                                 .builder(chatMemory)
