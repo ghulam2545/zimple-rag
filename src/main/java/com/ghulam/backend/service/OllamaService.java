@@ -1,6 +1,5 @@
 package com.ghulam.backend.service;
 
-import com.ghulam.backend.config.ChatConfiguration;
 import com.ghulam.backend.dtos.DocumentReference;
 import com.ghulam.backend.dtos.DocumentScope;
 import com.ghulam.backend.dtos.OllamaResponse;
@@ -114,15 +113,12 @@ public class OllamaService {
 
     private String getAnswer(String conversationId, String query, String context) {
         String prompt = """
-                %s
-                
                 User Query:
                 %s
                 
                 Retrieved Context:
                 %s
                 """.formatted(
-                ChatConfiguration.DEFAULT_SYSTEM_MESSAGE,
                 query,
                 context
         );
