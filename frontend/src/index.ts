@@ -107,6 +107,14 @@ const server = http.createServer((req, res) => {
         filePath = path.join(PAGES_DIR, urlPath);
     }
 
+    // Prevent path traversal: resolved path must stay within allowed roots.
+    const resolved = path.resolve(filePath);
+    if (!resolved.startsWith(PAGES_DIR) && !resolved.startsWith(DIST_DIR)) {
+        res.writeHead(403, { "Content-Type": "text/plain" });
+        res.end("Forbidden");
+        return;
+    }
+
     /*
      * SPA fallback:
      *

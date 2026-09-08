@@ -1,4 +1,15 @@
 const BASE_URL = 'http://localhost:8080/backend/api/v1';
+
+// Default document scope
+const DEFAULT_SCOPE = {
+    workspace: "workspace",
+    userId: "userId",
+    filename: "filename.md"
+};
+
+// Currently selected file for chat.
+let selectedFile: { workspace: string; userId: string; filename: string } | null = null;
+
 const convId =
     localStorage.getItem("zimple-conv-id") ||
     `conv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -11,38 +22,53 @@ document.getElementById("convId")!.textContent =
 const messagesEl = document.getElementById("messages")!;
 const inputEl = document.getElementById("queryInput") as HTMLTextAreaElement;
 const sendBtn = document.getElementById("sendBtn") as HTMLButtonElement;
-const sourcesList = document.getElementById("sourcesList")!;
 const fileInput = document.getElementById("fileInput") as HTMLInputElement;
 const uploadZone = document.getElementById("uploadZone")!;
+const filesListEl = document.getElementById("filesList")!;
+const activeFileBar = document.getElementById("activeFileBar")!;
+
+function escapeHtml(text: string): string {
+    const div = document.createElement("div");
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 function addMessage(
     role: "user" | "assistant",
-    text: string,
-    sources: any[] = []
+    text: string
 ) {
     const wrap = document.createElement("div");
 
     wrap.className = `message ${role}`;
 
+    const safeText = role === "user" ? escapeHtml(text) : formatMarkdown(text);
+
     wrap.innerHTML = `
         <div class="avatar">${role === "user" ? "U" : "Z"}</div>
-        <div class="bubble">${formatMarkdown(text)}</div>
+        <div class="bubble">${safeText}</div>
     `;
 
     messagesEl.appendChild(wrap);
     messagesEl.scrollTop = messagesEl.scrollHeight;
-
-    if (sources.length) {
-        renderSources(sources);
-    }
 }
 
 function formatMarkdown(text: string) {
-    const html = text
-        .replace(
-            /```([\s\S]*?)```/g,
-            "<pre><code>$1</code></pre>"
-        )
+    const escaped = escapeHtml(text);
+
+    const codeBlocks: string[] = [];
+    const withPlaceholders = escaped.replace(
+        /```(\w*)\n?([\s\S]*?)```/g,
+        (_match, lang, code) => {
+            const trimmed = code.replace(/^\n/, "").replace(/\n$/, "");
+            codeBlocks.push(
+                `<pre><code${lang ? ` class="language-${lang}"` : ""}>${trimmed}</code></pre>`
+            );
+            return `\x00CB${codeBlocks.length - 1}\x00`;
+        }
+    );
+
+    // Process inline markdown on the non-code text.
+    const formatted = withPlaceholders
         .replace(
             /`([^`]+)`/g,
             "<code>$1</code>"
@@ -57,33 +83,49 @@ function formatMarkdown(text: string) {
         )
         .replace(/\n/g, "<br>");
 
-    return `<p>${html}</p>`;
+    const restored = formatted.replace(
+        /\x00CB(\d+)\x00/g,
+        (_match, idx) => codeBlocks[Number(idx)]
+    );
+
+    return restored;
 }
 
-function renderSources(sources: any[]) {
-    sourcesList.innerHTML = "";
+// ─── File selection ─────────────────────────────────────────────
 
-    sources.forEach((s) => {
-        const div = document.createElement("div");
+function selectFile(workspace: string, userId: string, filename: string) {
+    selectedFile = {workspace, userId, filename};
 
-        div.className = "source-card";
+    // Update the active-file bar above the composer.
+    activeFileBar.innerHTML = `
+        <span class="active-label">Chatting with: <strong>${escapeHtml(filename)}</strong></span>
+    `;
 
-        div.innerHTML = `
-            <div class="path">${s.filePath}</div>
-            <div class="heading">${s.heading || "-"}</div>
-            <div class="score">
-                similarity: ${(s.score * 100).toFixed(1)}% - ${s.source}
-            </div>
-        `;
+    // Update placeholder.
+    inputEl.placeholder = `Ask about ${filename}...`;
 
-        sourcesList.appendChild(div);
+    // Highlight the active item in the right panel.
+    filesListEl.querySelectorAll(".file-item").forEach((el) => {
+        el.classList.toggle(
+            "active",
+            el.getAttribute("data-filename") === filename &&
+            el.getAttribute("data-workspace") === workspace &&
+            el.getAttribute("data-userid") === userId
+        );
     });
 }
+
+// ─── Chat ───────────────────────────────────────────────────────
 
 async function sendQuery() {
     const q = inputEl.value.trim();
 
     if (!q) {
+        return;
+    }
+
+    if (!selectedFile) {
+        addMessage("assistant", "Please select a file from the right panel first.");
         return;
     }
 
@@ -100,6 +142,7 @@ async function sendQuery() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
+                documentScope: selectedFile,
                 conversationId: convId,
                 query: q
             })
@@ -108,14 +151,10 @@ async function sendQuery() {
         const data = await res.json();
 
         if (!res.ok) {
-            throw new Error(data.error || "Failed");
+            throw new Error(data.message || "Failed");
         }
 
-        addMessage(
-            "assistant",
-            data.answer,
-            data.sources
-        );
+        addMessage("assistant", data.answer);
     } catch (e) {
         const message =
             e instanceof Error
@@ -146,6 +185,8 @@ inputEl.addEventListener("input", () => {
     inputEl.style.height =
         inputEl.scrollHeight + "px";
 });
+
+// ─── Upload ─────────────────────────────────────────────────────
 
 uploadZone.addEventListener("click", () => {
     fileInput.click();
@@ -182,36 +223,71 @@ fileInput.addEventListener("change", async () => {
 });
 
 async function uploadFiles(files: File[]) {
-    const form = new FormData();
-
-    files.forEach((f) => {
-        form.append("files", f);
-    });
-
     uploadZone.innerHTML = "<p>Uploading...</p>";
 
     try {
-        const res = await fetch(
-            "/api/ingest/upload/bulk",
-            {
+        if (files.length === 1) {
+            const form = new FormData();
+            const scope = {...DEFAULT_SCOPE, filename: files[0].name};
+
+            form.append("file", files[0]);
+            form.append(
+                "documentScope",
+                new Blob([JSON.stringify(scope)], {type: "application/json"})
+            );
+
+            const res = await fetch(BASE_URL + "/upload", {
                 method: "POST",
                 body: form
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Upload failed");
             }
-        );
 
-        const data = await res.json();
+            addMessage(
+                "assistant",
+                `Ingested **${data.fileName}** → ${data.chunks} chunks (${data.status})`
+            );
+        } else {
+            const form = new FormData();
+            const scope = {...DEFAULT_SCOPE, filename: files.map(f => f.name).join(",")};
 
-        const totalChunks = data.reduce(
-            (a: number, b: any) => a + b.chunks,
-            0
-        );
+            files.forEach((f) => {
+                form.append("files", f);
+            });
 
-        addMessage(
-            "assistant",
-            `Ingested ${data.length} MD file(s) -> ${totalChunks} chunks indexed in PGVector.`
-        );
+            form.append(
+                "documentScope",
+                new Blob([JSON.stringify(scope)], {type: "application/json"})
+            );
+
+            const res = await fetch(BASE_URL + "/bulk/upload", {
+                method: "POST",
+                body: form
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.message || "Upload failed");
+            }
+
+            const totalChunks = data.reduce(
+                (a: number, b: any) => a + b.chunks,
+                0
+            );
+
+            addMessage(
+                "assistant",
+                `Ingested ${data.length} MD file(s) → ${totalChunks} chunks indexed.`
+            );
+        }
 
         updateStats();
+        loadIngestedFiles();
     } catch (e) {
         const message =
             e instanceof Error
@@ -232,62 +308,103 @@ async function uploadFiles(files: File[]) {
     }
 }
 
+// ─── Stats & Files ──────────────────────────────────────────────
+
 async function updateStats() {
     try {
-        const res = await fetch("/api/health");
+        const res = await fetch(BASE_URL + "/health");
         const h = await res.json();
 
         document.getElementById("kb-stats")!.innerHTML = `
-            PG: ${h.postgres}<br>
-            Redis: ${h.redis}<br>
-            MD-only: ${h.mdOnly ? "YES" : "NO"}
+            PG: ${escapeHtml(h.postgres || "unknown")}<br>
+            Redis: ${escapeHtml(h.redis || "unknown")}
         `;
     } catch {
-        // Ignore health check failure.
+        document.getElementById("kb-stats")!.textContent = "Backend offline";
     }
 }
 
+async function loadIngestedFiles() {
+    try {
+        const res = await fetch(BASE_URL + "/files");
+
+        if (!res.ok) {
+            filesListEl.innerHTML = '<p class="empty">Failed to load files.</p>';
+            return;
+        }
+
+        const files: any[] = await res.json();
+
+        if (!files.length) {
+            filesListEl.innerHTML = '<p class="empty">No files yet. Upload some MD files.</p>';
+            return;
+        }
+
+        filesListEl.innerHTML = "";
+
+        files.forEach((f) => {
+            const div = document.createElement("div");
+            div.className = "file-item";
+
+            const filename = f.filename || "unknown";
+            const workspace = f.workspace || "—";
+            const userId = f.user_id || "—";
+            const timestamp = f.created_timestamp
+                ? new Date(f.created_timestamp).toLocaleDateString()
+                : "";
+
+            // Store data attributes for selection matching.
+            div.setAttribute("data-filename", filename);
+            div.setAttribute("data-workspace", workspace);
+            div.setAttribute("data-userid", userId);
+
+            // Highlight if already selected.
+            if (
+                selectedFile &&
+                selectedFile.filename === filename &&
+                selectedFile.workspace === workspace &&
+                selectedFile.userId === userId
+            ) {
+                div.classList.add("active");
+            }
+
+            div.innerHTML = `
+                <div class="file-icon">MD</div>
+                <div class="file-info">
+                    <div class="file-name" title="${escapeHtml(filename)}">${escapeHtml(filename)}</div>
+                    <div class="file-meta">${escapeHtml(workspace)}${timestamp ? " · " + timestamp : ""}</div>
+                </div>
+            `;
+
+            div.addEventListener("click", () => {
+                selectFile(workspace, userId, filename);
+            });
+
+            filesListEl.appendChild(div);
+        });
+    } catch {
+        filesListEl.innerHTML = '<p class="empty">Backend offline.</p>';
+    }
+}
+
+// ─── Clear conversation ─────────────────────────────────────────
+
 document
     .getElementById("clearBtn")!
-    .addEventListener("click", async () => {
-        await fetch(`/api/chat/${convId}`, {
-            method: "DELETE"
-        });
+    .addEventListener("click", () => {
+        localStorage.removeItem("zimple-conv-id");
 
         messagesEl.innerHTML = "";
 
-        sourcesList.innerHTML =
-            '<p class="empty">Cleared.</p>';
+        const newConvId = `conv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        localStorage.setItem("zimple-conv-id", newConvId);
+        document.getElementById("convId")!.textContent =
+            newConvId.slice(0, 18) + "...";
 
-        addMessage(
-            "assistant",
-            "Conversation cleared. Ask something new."
-        );
+        location.reload();
     });
 
-document
-    .getElementById("ingestDirBtn")!
-    .addEventListener("click", async () => {
-        addMessage(
-            "assistant",
-            "Ingesting ./knowledge directory..."
-        );
-
-        const res = await fetch(
-            "/api/ingest/directory",
-            {
-                method: "POST"
-            }
-        );
-
-        const data = await res.json();
-
-        addMessage(
-            "assistant",
-            `Ingested ${data.processed}/${data.total} files -> ${data.totalChunks} chunks`
-        );
-
-        updateStats();
-    });
+// ─── Init ───────────────────────────────────────────────────────
 
 updateStats();
+loadIngestedFiles();

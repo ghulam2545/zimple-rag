@@ -23,12 +23,11 @@
             </div>
             <div class="panel">
                 <h3>Knowledge Base</h3>
-                <div id="kb-stats" class="stats">Loading...</div>
+<!--                <div id="kb-stats" class="stats">Loading...</div>-->
                 <div class="upload-zone" id="uploadZone">
                     <input type="file" id="fileInput" multiple accept=".md,.markdown" hidden />
-                    <p>Drop MD files here<br><span>or click to upload</span></p>
+                <p>Drop MD files here<br><span>or click to upload</span></p>
                 </div>
-                <button id="ingestDirBtn" class="secondary">Ingest</button>
             </div>
             <div class="panel">
                 <h3>Conversation</h3>
@@ -36,7 +35,7 @@
                     <button id="clearBtn">Clear</button>
                 </div>
             </div>
-            <div class="footer"><span>Spring AI + Gemini</span></div>
+            <div class="footer"><span>Spring AI + Ollama</span></div>
         </aside>
         <main class="chat-area">
             <div id="messages" class="messages">
@@ -48,9 +47,12 @@
                     </div>
                 </div>
             </div>
+            <div id="activeFileBar" class="active-file-bar">
+                <span class="active-label">No file selected</span>
+            </div>
             <div class="composer">
                 <div class="input-wrap">
-                    <textarea id="queryInput" placeholder="Ask about your markdown docs..." rows="1"></textarea>
+                    <textarea id="queryInput" placeholder="Select a file from the right panel, then ask..." rows="1"></textarea>
                     <button id="sendBtn" class="primary">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -62,10 +64,11 @@
                 <p class="hint">Press Enter to send - Shift+Enter for new line</p>
             </div>
         </main>
-        <aside class="sources-panel" id="sourcesPanel">
-            <h3>Sources</h3>
-            <div id="sourcesList" class="sources-list">
-                <p class="empty">No sources yet. Ask a question.</p>
+        <aside class="files-right-panel" id="filesPanel">
+            <h3>Ingested Files</h3>
+            <p class="files-hint">Click a file to chat with it</p>
+            <div id="filesList" class="files-list">
+                <p class="empty">No files yet. Upload some MD files.</p>
             </div>
         </aside>
     </div>
