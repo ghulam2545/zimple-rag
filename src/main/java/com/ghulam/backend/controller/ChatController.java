@@ -37,8 +37,8 @@ public class ChatController {
     }
 
     @GetMapping(path = "/files")
-    public ResponseEntity<?> getIngestedFiles() {
-        var files = chatService.getIngestedFiles();
+    public ResponseEntity<?> getIngestedFiles(@RequestParam("pageNumber") int pageNumber, @RequestParam("pageSize") int pageSize) {
+        var files = chatService.getIngestedFiles(pageNumber, pageSize);
         return ResponseEntity.ok(files);
     }
 }

@@ -326,7 +326,12 @@ async function updateStats() {
 
 async function loadIngestedFiles() {
     try {
-        const res = await fetch(BASE_URL + "/files");
+        const pageNumber = 1;
+        const pageSize = 10;
+
+        const res = await fetch(
+            `${BASE_URL}/files?pageNumber=${pageNumber}&pageSize=${pageSize}`
+        );
 
         if (!res.ok) {
             filesListEl.innerHTML = '<p class="empty">Failed to load files.</p>';

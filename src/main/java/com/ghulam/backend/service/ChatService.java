@@ -47,8 +47,27 @@ public class ChatService {
         return results.get(0).getText();
     }
 
-    public List<Map<String, Object>> getIngestedFiles() {
-        String sql = "SELECT workspace, user_id, filename, is_public, created_timestamp FROM document_data;";
-        return jdbcTemplate.queryForList(sql);
+    public Map<String, Object> getIngestedFiles(int pageNumber, int pageSize) {
+        int offset = (pageNumber - 1) * pageSize;
+        String dataSql = """
+                SELECT workspace, user_id, filename, is_public, created_timestamp
+                FROM document_data
+                ORDER BY created_timestamp DESC
+                LIMIT ? OFFSET ?
+                """;
+
+        String countSql = "SELECT COUNT(*) FROM document_data";
+
+        var files = jdbcTemplate.queryForList(dataSql, pageSize, offset);
+        Long total = jdbcTemplate.queryForObject(countSql, Long.class);
+        assert total != null;
+
+        return Map.of(
+                "files", files,
+                "page", pageNumber,
+                "size", pageSize,
+                "total", total,
+                "totalPages", (int) Math.ceil((double) total / pageSize)
+        );
     }
 }
