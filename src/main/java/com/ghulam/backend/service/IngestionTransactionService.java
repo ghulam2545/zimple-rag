@@ -1,5 +1,6 @@
 package com.ghulam.backend.service;
 
+import com.ghulam.backend.dtos.DocumentScope;
 import com.ghulam.backend.dtos.IngestionResult;
 import com.ghulam.backend.dtos.LoadedMarkdown;
 import com.ghulam.backend.helper.AppSetting;
@@ -26,7 +27,7 @@ public class IngestionTransactionService {
         String filename = documentScope.filename();
         String fileHash = metadata.getFileHash();
 
-        if (isAlreadyIngested(filename, fileHash)) {
+        if (isAlreadyIngested(documentScope, fileHash)) {
             log.info(
                     "{} Skipping unchanged file: {}",
                     AppSetting.LOG_SEPARATOR,
@@ -61,19 +62,23 @@ public class IngestionTransactionService {
         );
     }
 
-    private boolean isAlreadyIngested(String filename, String fileHash) {
+    private boolean isAlreadyIngested(DocumentScope documentScope, String fileHash) {
         Boolean exists = jdbcTemplate.queryForObject(
                 """
                         SELECT EXISTS (
                             SELECT 1
                             FROM document_data
                             WHERE filename = ?
+                              AND user_id = ?
+                              AND workspace = ?
                               AND file_hash = ?
                               AND status = 'COMPLETED'
                         )
                         """,
                 Boolean.class,
-                filename,
+                documentScope.filename(),
+                documentScope.userId(),
+                documentScope.workspace(),
                 fileHash
         );
 
